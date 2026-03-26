@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood App</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!--  AUTH  -->
+<div class="screen active" id="auth-screen">
+  <div class="auth-glow"></div>
+  <div class="auth-box">
+
+    <div class="auth-logo">
+      <div class="auth-logo-dot"></div>
+      <div class="auth-logo-name">mood</div>
+      <div class="auth-logo-tag">sprint 1</div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">sign in</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div class="form-group">
+        <div class="form-label">email</div>
+        <input class="form-input" id="login-email" type="email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <div class="form-label">password</div>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••">
+      </div>
+      <div class="form-error" id="login-error"></div>
+      <button class="btn-primary" onclick="handleLogin()">sign in →</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form-panel" id="panel-register">
+      <div class="form-group">
+        <div class="form-label">name</div>
+        <input class="form-input" id="reg-name" type="text" placeholder="your name">
+      </div>
+      <div class="form-group">
+        <div class="form-label">email</div>
+        <input class="form-input" id="reg-email" type="email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <div class="form-label">password</div>
+        <input class="form-input" id="reg-pass" type="password" placeholder="min. 6 characters">
+      </div>
+      <div class="form-group">
+        <div class="form-label">confirm password</div>
+        <input class="form-input" id="reg-pass2" type="password" placeholder="repeat password">
+      </div>
+      <div class="form-error" id="reg-error"></div>
+      <button class="btn-primary" onclick="handleRegister()">create account →</button>
+    </div>
+
+    <div class="auth-footer" id="auth-footer">
+      don't have an account? <a onclick="switchTab('register')">register</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="screen" id="app-screen">
+
+  <!-- topbar -->
+  <div class="topbar">
+    <div class="topbar-dot"></div>
+    <div class="topbar-name">Self Adjusting</div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-ava" id="user-ava">?</div>
+        <div class="user-chip-name" id="user-chip-name"></div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">sign out</button>
+    </div>
+  </div>
+
+  <!-- sprint bar -->
+  <div class="sprint-bar">
+    <div class="sprint-label">main page</div>
+    <div class="sprint-req">
+      
+    </div>
+  </div>
+
+  <!-- greeting -->
+  <div class="greeting-bar">
+    <div class="greeting-title" id="greeting-title">Good morning</div>
+    <div class="greeting-sub">choose a module to get started</div>
+  </div>
+
+  <!-- cards -->
+  <div class="cards-area">
+
+    <!-- TO-DO -->
+    <div class="card" style="--card-color:var(--green);--card-glow:rgba(74,222,128,.12)" onclick="showToast('To-do list — coming in Sprint 2')">
+      <div class="card-accent-line"></div>
+      <div class="card-glow"></div>
+      <div class="card-icon">✅</div>
+      <div>
+        <div class="card-title">To-do list</div>
+        <div class="card-desc">Track your tasks,<br>mark them done one by one.</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-tag">tasks</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+
+    <!-- FEELINGS -->
+    <div class="card" style="--card-color:var(--accent);--card-glow:rgba(124,106,247,.14)" onclick="showToast('Feelings tracker — coming in Sprint 2')">
+      <div class="card-accent-line"></div>
+      <div class="card-glow"></div>
+      <div class="card-icon">🌙</div>
+      <div>
+        <div class="card-title">Feelings tracker</div>
+        <div class="card-desc">Log your mood daily,<br>see patterns over time.</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-tag">mood</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+
+    <!-- POMODORO -->
+    <div class="card" style="--card-color:var(--angry);--card-glow:rgba(248,113,113,.12)" onclick="showToast('Pomodoro timer — coming in Sprint 2')">
+      <div class="card-accent-line"></div>
+      <div class="card-glow"></div>
+      <div class="card-icon">🍅</div>
+      <div>
+        <div class="card-title">Pomodoro timer</div>
+        <div class="card-desc">Focus in blocks,<br>rest between sessions.</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-tag">focus</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// STORAGE 
+function getUsers() { return JSON.parse(localStorage.getItem('mood_users')||'{}'); }
+function saveUsers(u) { localStorage.setItem('mood_users', JSON.stringify(u)); }
+
+// AUTH TAB 
+function switchTab(tab) {
+  ['login','register'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  document.getElementById('auth-footer').innerHTML = tab==='login'
+    ? `don't have an account? <a onclick="switchTab('register')">register</a>`
+    : `already have an account? <a onclick="switchTab('login')">sign in</a>`;
+  document.getElementById('login-error').textContent='';
+  document.getElementById('reg-error').textContent='';
+}
+
+// LOGIN 
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const err   = document.getElementById('login-error');
+  if (!email||!pass) { err.textContent='fill in all fields'; return; }
+  const users = getUsers();
+  if (!users[email]) { err.textContent='user not found'; return; }
+  if (users[email].password !== btoa(pass)) { err.textContent='wrong password'; return; }
+  enterApp({ email, name: users[email].name });
+}
+
+// REGISTER
+function handleRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const err   = document.getElementById('reg-error');
+  if (!name||!email||!pass||!pass2) { err.textContent='fill in all fields'; return; }
+  if (!email.includes('@'))         { err.textContent='invalid email'; return; }
+  if (pass.length<6)                { err.textContent='password min. 6 characters'; return; }
+  if (pass!==pass2)                 { err.textContent='passwords do not match'; return; }
+  const users = getUsers();
+  if (users[email])                 { err.textContent='email already registered'; return; }
+  users[email] = { name, password: btoa(pass) };
+  saveUsers(users);
+  enterApp({ email, name });
+  showToast('welcome, '+name+'! 👋');
+}
+
+// ENTER APP 
+function enterApp(user) {
+  localStorage.setItem('mood_session', JSON.stringify(user));
+  const initials = user.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-ava').textContent = initials;
+  document.getElementById('user-chip-name').textContent = user.name;
+
+  const h = new Date().getHours();
+  const greet = h<12 ? 'Good morning' : h<18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting-title').textContent = greet+', '+user.name.split(' ')[0];
+
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+}
+
+// LOGOUT 
+function handleLogout() {
+  localStorage.removeItem('mood_session');
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
+  switchTab('login');
+}
+
+// TOAST 
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+// AUTO SESSION 
+const saved = localStorage.getItem('mood_session');
+if (saved) { try { enterApp(JSON.parse(saved)); } catch(e) { localStorage.removeItem('mood_session'); } }
+
+// ENTER KEY 
+document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') handleLogin(); });
+document.getElementById('reg-pass2').addEventListener('keydown', e=>{ if(e.key==='Enter') handleRegister(); });
+</script>
+</body>
+</html>
